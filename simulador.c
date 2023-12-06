@@ -1,14 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <string.h>
+#include <sys/time.h>
 
 #define check_size(x) (x != 8 && x != 16)
 #define check_mem(x) (x < 1 || x > 4)
 #define check_mode(x) (strcmp(x, "LRU") && strcmp(x, "NRU"))
 #define error(msg) printf(msg); exit(1);
 
-void NRU();
-void LRU();
+struct pagina {
+    char M;
+    char R;
+    char abs;
+    unsigned int addressPhis;
+    time_t interval;
+};
+
+typedef struct pagina Pagina;
+
+int calculaShift(int pageSize);
 
 int main (int argc, char* argv[]) {
     if check_mode(argv[1]) {
@@ -32,21 +43,21 @@ int main (int argc, char* argv[]) {
         error("Arquivo nao encontrado\n")
     }
 
-    unsigned int address;
+    unsigned int address, page;
     char accessType;
+    int shift = calculaShift(size);
     while(!feof(arq)) {
         fscanf(arq, "%x %c\n", &address, &accessType);
 
+        page = address >> shift;
 
     }
 
     return 0;
 }
 
-void NRU () {
-
-}
-
-void LRU () {
-
+int calculaShift(int pageSize) {
+    int base_shift = 10; //1kb
+    double plus_shift = log2(pageSize);
+    return base_shift + (int) plus_shift;
 }
