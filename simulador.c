@@ -32,12 +32,12 @@ int main (int argc, char* argv[]) {
         error("Arquivo nao encontrado\n")
     }
 
-    int address;
+    unsigned int address;
     char accessType;
     while(!feof(arq)) {
-        fscanf(arq, "%x %c\n", address, accessType);
+        fscanf(arq, "%x %c\n", &address, &accessType);
 
-        
+
     }
 
     return 0;
