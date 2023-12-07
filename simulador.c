@@ -25,18 +25,23 @@ int main(int argc, char* argv[]) {
         error("Escolha entre os modos NRU ou LRU\n")
     }
 
+    //Pega o algoritmo de substituicao de paginas
     mode = strcmp(argv[1], "NRU") == 0 ? 0 : 1;
+
+    //Pega o tamanho das paginas em Kb
     pageSize = atoi(argv[3]);
 
     if check_size(pageSize) {
         error("As paginas tem que ter tamanho 8 Kbytes ou 16 Kbytes\n")
     }
 
+    //Pega o tamanho da memoria fisica em Mb
     memSize = atoi(argv[4]);
     if check_mem(memSize) {
         error("A memoria fisica tem de ser entre 1Mbytes e 4Mbytes\n")
     }
 
+    //Abre o arquivo de entrada
     FILE* arq = fopen(argv[2], "r");
     if (arq == NULL) {
         error("Arquivo nao encontrado\n")
