@@ -1,7 +1,7 @@
 #define SIM 1
 
 // REMOVER ANTES DE ENTREGAR
-#define DEBUG 1
+//#define DEBUG 1
 
 #include "simulador.h"
 
@@ -31,7 +31,7 @@ int clock = 0;
 #if DEBUG
 int main(void) {
     int argc = 5;
-    char* argv[5] = {"", "LRU", "C:\\Users\\Doctor Christ\\Documents\\inf1316-T2\\simulador.log", "8", "4"};
+    char* argv[5] = {"", "NRU", "C:\\Users\\Doctor Christ\\Documents\\inf1316-T2\\simulador.log", "16", "1"};
 #else
 int main(int argc, char* argv[]) {
 
@@ -92,6 +92,8 @@ int main(int argc, char* argv[]) {
 
         //incrementa o contador do simulador
         clock++;
+        if (clock % 8045 == 0)
+            resetReference();
     }
 
     fclose(arq);
@@ -234,23 +236,72 @@ int NRU (){
     Prioridade de se manter na memoria:
     R | M
     1   1
-    0   1
     1   0
+    0   1
     0   0  
     prioridade de ser descartado vai de baixo pra cima*/
 
-    for(int i =0; i < sizePageTable; i++){
-        if(pagTable[i].R == 0 && pagTable[i].M == 0){
-            //substitui pagina i
+    Pagina *atual = NULL, *descartado = NULL;
+    int i, indDescart = 0;
+
+    for(i = 0; i < sizeFrameTable; i++){
+
+        atual = frameTable[i].p;
+
+        if(atual->R == 0 && atual->M == 0){
+            descartado = atual;
+            indDescart = i;
+            break;
         }
-        else if(pagTable[i].R == 1 && pagTable[i].M == 0){
-            //substitui pagina i
+        else if(atual->R == 0 && atual->M == 1){
+            if (descartado == NULL) {
+                descartado = atual;
+                indDescart = i;
+                continue;
+            }
+
+            if (descartado->R) {
+                descartado = atual;
+                indDescart = i;
+            }
         }
-        else if(pagTable[i].R == 0 && pagTable[i].M == 1){
-            //substitui pagina i
+        else if(atual->R == 1 && atual->M == 0){
+            if (descartado == NULL) {
+                descartado = atual;
+                indDescart = i;
+                continue;
+            }
+
+            if (descartado->R && descartado->M) {
+                descartado = atual;
+                indDescart = i;
+            }
         }
-        else if(pagTable[i].R == 1 && pagTable[i].M == 1){
-            //substitui pagina i
+        else {
+            if (descartado == NULL) {
+                descartado = atual;
+                indDescart = i;
+            }
         }
     }
+
+    if (descartado->M) {
+        writtenPages++;
+        descartado->M = 0;
+    }
+
+    descartado->A = 0;
+    descartado->R = 0;
+
+    frameTable[indDescart].p = NULL;
+    frameTable[indDescart].num = -1;
+
+    return indDescart;
+}
+
+void resetReference() {
+    for (int i = 0; i < sizeFrameTable; i++)
+        if (frameTable[i].p != NULL)
+            frameTable[i].p->R = 0;
+    return;
 }

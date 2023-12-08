@@ -41,3 +41,8 @@ int LRU ();
 Faz o algoritmo de substituicao de paginas NRU
 */
 int NRU ();
+
+/*
+Reinicia os bits de referencia (interrupcao do relogio)
+*/
+void resetReference();
