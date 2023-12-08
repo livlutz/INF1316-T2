@@ -1,16 +1,21 @@
 #define SIM 1
 
+// REMOVER ANTES DE ENTREGAR
+#define DEBUG 1
+
 #include "simulador.h"
 
 struct pagina {
-    unsigned int addressPhis; // ARM00000 00000XXX XXXXXXXX XXXXXXXX
+    unsigned int addressPhis; // XXXXXXXX XXXXXXXX XXX00000 00000000
     int time; // tempo de ultimo acesso
+    int A; //flag de pagina na memoria
     int R; //flag de pagina referenciada
     int M; //flag de pagina modificada
 };
 
 struct quadro {
-    int num; // se -1 -> livre
+    int num; //se -1 -> livre
+    Pagina* p; //ponteiro para a pagina
 };
 
 Pagina* pagTable;
@@ -23,7 +28,18 @@ int pageFaults = 0, writtenPages = 0;
 //contador simulando a passagem do tempo
 int clock = 0;
 
+#if DEBUG
+int main(void) {
+    int argc = 5;
+    char* argv[5] = {"", "LRU", "C:\\Users\\Doctor Christ\\Documents\\inf1316-T2\\simulador.log", "8", "4"};
+#else
 int main(int argc, char* argv[]) {
+
+#endif
+    if (argc != 5) {
+        error("Uso apropriado do programa: .\\sim-virtual (LRU || NRU) (8 || 16) (1..4)\n")
+    }
+
     if check_mode(argv[1]) {
         error("Escolha entre os modos NRU ou LRU\n")
     }
@@ -72,7 +88,7 @@ int main(int argc, char* argv[]) {
             offset += address & (0x1 << i);
 
         //calcula o endereco fisico
-        physAddr = getPhysAddr(page, offset);
+        physAddr = getPhysAddr(page, offset, accessType);
 
         //incrementa o contador do simulador
         clock++;
@@ -105,13 +121,15 @@ void createTables() {
     }
     
     for (int i = 0; i < sizePageTable; i++) {
-        pagTable[i].addressPhis = 0;
-        pagTable[i].time = 0;
+        (pagTable + i)->addressPhis = 0;
+        (pagTable + i)->time = 0;
+        (pagTable + i)->A = 0;
+        (pagTable + i)->R = 0;
+        (pagTable + i)->M = 0;
     }
 
     //calcula o tamanho da tabela de quadros
-    qtd = ONE_MB_EXP + memSize - exp;
-    sizeFrameTable = pow(2, qtd);
+    sizeFrameTable = (pow(2, ONE_MB_EXP) * memSize) / pow(2, exp);
     frameTable = (Quadro*)malloc(sizeof(Quadro) * sizeFrameTable);
 
     if (frameTable == NULL) {
@@ -119,17 +137,18 @@ void createTables() {
     }
 
     for (int i = 0; i < sizeFrameTable; i++) {
-        frameTable[i].num = -1;
+        (frameTable + i)->num = -1;
+        (frameTable + i)->p = NULL;
     }
 }
 
-unsigned int getPhysAddr(unsigned int index, unsigned int offset) {
-    Pagina page = pagTable[index];
+unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessType) {
+    Pagina* page = pagTable + index;
     unsigned int addr;
     int freeFrame = -1;
     
     // checa se presente
-    if (!(page.addressPhis & PRESENT_BIT)) {
+    if (!(page->A)) {
         // se nao, conta mais 1 page fault
         pageFaults++;
 
@@ -138,20 +157,40 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset) {
             if (frameTable[i].num == -1) {
                 freeFrame = i;
                 frameTable[i].num = i;
+                frameTable[i].p = page;
+                break;
             }
         }
 
         // se nao tiver frame livre -> swap
         if (freeFrame == -1) {
             // libera 1 e devolve numero do frame || swap();
+            if (mode) {
+                int i = LRU();
+                freeFrame = i;
+                frameTable[i].num = i;
+                frameTable[i].p = page;
+            }
+            else {
+                int i = NRU();
+                freeFrame = i;
+                frameTable[i].num = i;
+                frameTable[i].p = page;
+            }
         }
 
-        // guarda frame na pagina
-        page.addressPhis = PRESENT_BIT + frameTable[freeFrame].num;
+        // guarda endereço fisico inicial do frame na pagina
+        page->addressPhis = frameTable[freeFrame].num << calculaShift();
     }
 
-    page.time = clock;
-    addr = page.addressPhis << calculaShift() + offset;
+    if (accessType == 'W') {
+        page->M = 1;
+    }
+
+    page->R = 1;
+    page->time = clock;
+    page->A = 1;
+    addr = page->addressPhis + offset;
 
     return addr;
 }
@@ -162,19 +201,35 @@ int calculaShift() {
     return base_shift + (int) plus_shift;
 }
 
-void LRU(){
+int LRU(){
     /*Princípio: descartar a página que ficou sem acesso durante o
         periodo de tempo mais longo
         Pegar o time de cada pagina e ver qual tem o time menor e descarta-la*/
-    
-    for(int i = 0; i < sizePageTable; i++){
-        if(pagTable[i].time < pagTable[i+1].time){
-            //substitui pagina i 
+    int smallestSize = INT_MAX, indexBS = 0;
+    Pagina* maior = frameTable[0].p;
+    for(int i = 0; i < sizeFrameTable; i++){
+        if(frameTable[i].p->time < smallestSize){
+            smallestSize = frameTable[i].p->time;
+            indexBS = i;
+            maior = frameTable[i].p;
         }
     }
+
+    if (maior->M) {
+        writtenPages++;
+        maior->M = 0;
+    }
+
+    maior->A = 0;
+    maior->R = 0;
+
+    frameTable[indexBS].p = NULL;
+    frameTable[indexBS].num = -1;
+
+    return indexBS;
 }
 
-void NRU (){
+int NRU (){
     /*Verificar bits R E M
     Prioridade de se manter na memoria:
     R | M

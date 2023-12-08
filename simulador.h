@@ -8,8 +8,6 @@
 #define check_mode(x) (strcmp(x, "LRU") && strcmp(x, "NRU"))
 #define error(msg) printf(msg); exit(1);
 
-#define PRESENT_BIT 0x80000000
-
 // tamanho do endereco
 #define TOTAL_BITS_SIZE 32
 // expoente de 1 MB (2^20)
@@ -32,14 +30,14 @@ int calculaShift();
 /*
  Devolve o endere�o fisico apos o mapeamento pelo simulador
 */
-unsigned int getPhysAddr(unsigned int index, unsigned int offset);
+unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessType);
 
 /*
 Faz o algoritmo de substituicao de paginas LRU
 */
-void LRU ();
+int LRU ();
 
 /*
 Faz o algoritmo de substituicao de paginas NRU
 */
-void NRU ();
+int NRU ();
