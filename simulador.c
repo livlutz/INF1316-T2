@@ -1,3 +1,6 @@
+// Arthur Augusto Claro Sardella - 2212763 - 3WA
+// Lívia Lutz dos Santos - 2211055 - 3WB
+
 #define SIM 1
 
 // REMOVER ANTES DE ENTREGAR
@@ -121,7 +124,8 @@ void createTables() {
     if (pagTable == NULL) {
         error("Espaco de memoria insuficiente\n")
     }
-    
+
+    //Inicializa os campos de pagina
     for (int i = 0; i < sizePageTable; i++) {
         (pagTable + i)->addressPhis = 0;
         (pagTable + i)->time = 0;
@@ -138,6 +142,7 @@ void createTables() {
         error("Espaco de memoria insuficiente\n")
     }
 
+    //Inicializa os campos de quadro
     for (int i = 0; i < sizeFrameTable; i++) {
         (frameTable + i)->num = -1;
         (frameTable + i)->p = NULL;
@@ -173,6 +178,7 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessTyp
                 frameTable[i].num = i;
                 frameTable[i].p = page;
             }
+                
             else {
                 int i = NRU();
                 freeFrame = i;
@@ -185,11 +191,15 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessTyp
         page->addressPhis = frameTable[freeFrame].num << calculaShift();
     }
 
+    //Se a pagina for aberta para escrita -> seta a flag de escrita
     if (accessType == 'W') {
         page->M = 1;
     }
 
+    //Senao seta a flag de leitura
     page->R = 1;
+
+    //Atualiza os campos e endereco da proxima pagina
     page->time = clock;
     page->A = 1;
     addr = page->addressPhis + offset;
@@ -208,7 +218,10 @@ int LRU(){
         periodo de tempo mais longo
         Pegar o time de cada pagina e ver qual tem o time menor e descarta-la*/
     int smallestSize = INT_MAX, indexBS = 0;
+    
     Pagina* maior = frameTable[0].p;
+
+    //Se o tempo de acesso for < que o menor tempo, pega a pagina
     for(int i = 0; i < sizeFrameTable; i++){
         if(frameTable[i].p->time < smallestSize){
             smallestSize = frameTable[i].p->time;
@@ -216,18 +229,21 @@ int LRU(){
             maior = frameTable[i].p;
         }
     }
-
+    //Seta a flag de modificado para 0 e aumenta a qtd de paginas sujas
     if (maior->M) {
         writtenPages++;
         maior->M = 0;
     }
-
+    
+    //Seta as flags de presenca e leitura para 0
     maior->A = 0;
     maior->R = 0;
 
+    //Inicializa os campos da pagina descartada
     frameTable[indexBS].p = NULL;
     frameTable[indexBS].num = -1;
 
+    //Retorna o indice da pagina descartada
     return indexBS;
 }
 
@@ -244,6 +260,7 @@ int NRU (){
     Pagina *atual = NULL, *descartado = NULL;
     int i, indDescart = 0;
 
+    //Compara as flags R e M da pagina atual
     for(i = 0; i < sizeFrameTable; i++){
 
         atual = frameTable[i].p;
@@ -285,17 +302,21 @@ int NRU (){
         }
     }
 
+    //Se a pagina descartada for modificada, aumenta a qtd de paginas sujas e seta a flag M para 0
     if (descartado->M) {
         writtenPages++;
         descartado->M = 0;
     }
 
+    //Seta as flags de presenca e leitura para 0
     descartado->A = 0;
     descartado->R = 0;
 
+    //Inicializa os campos da pagina descartada
     frameTable[indDescart].p = NULL;
     frameTable[indDescart].num = -1;
 
+    //Retorna o indice da pagina descartada
     return indDescart;
 }
 
