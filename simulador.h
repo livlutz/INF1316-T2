@@ -21,7 +21,7 @@ typedef struct pagina Pagina;
 /*
  Cria as tabelas de paginas e de quadros
 */
-void createTables();
+void createTable();
 /*
  Calcula o deslocamento com base no tamanho das paginas
 */
@@ -29,17 +29,17 @@ int calculaShift();
 /*
  Definir o q essa funcao vai fazer
 */
-void getPhysAddr(unsigned int index, unsigned int offset, char accessType);
+void loadPage(unsigned int index, char accessType);
 
 /*
 Faz o algoritmo de substituicao de paginas LRU
 */
-int LRU ();
+void LRU ();
 
 /*
 Faz o algoritmo de substituicao de paginas NRU
 */
-int NRU ();
+void NRU ();
 
 /*
 Reinicia os bits de referencia (interrupcao do relogio)
