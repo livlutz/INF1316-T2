@@ -5,6 +5,8 @@
 struct pagina {
     unsigned int addressPhis; // ARM00000 00000XXX XXXXXXXX XXXXXXXX
     int time; // tempo de ultimo acesso
+    int R; //flag de pagina referenciada
+    int M; //flag de pagina modificada
 };
 
 struct quadro {
@@ -18,6 +20,7 @@ int sizeFrameTable, sizePageTable;
 int pageSize, memSize, mode;
 int pageFaults = 0, writtenPages = 0;
 
+//contador simulando a passagem do tempo
 int clock = 0;
 
 int main(int argc, char* argv[]) {
@@ -51,23 +54,31 @@ int main(int argc, char* argv[]) {
 
     unsigned int address, page, offset = 0, physAddr;
     char accessType;
+
+    //calcula a quantidade de bits menos significativos
     int shift = calculaShift();
     createTables();
 
+    //Le o arquivo de entrada
     while (!feof(arq)) {
+        //guarda o endereco e o tipo de acesso (R ou W)
         fscanf(arq, "%x %c ", &address, &accessType);
 
+        //calcula o indice da pagina (endereco logico) descartando os bits menos significativos
         page = address >> shift;
         for (int i = 0; i < shift; i++)
             offset += address & (0x1 << i);
 
+        //calcula o endereco fisico
         physAddr = getPhysAddr(page, offset);
 
+        //incrementa o contador do simulador
         clock++;
     }
 
     fclose(arq);
 
+    //formata a saida da simulacao
     printf("Arquivo de entrada: %s\n", argv[2]);
     printf("Tamanho da memoria fisica: %d MB\n", memSize);
     printf("Tamanho das paginas: %d KB\n", pageSize);
@@ -79,8 +90,10 @@ int main(int argc, char* argv[]) {
 }
 
 void createTables() {
+    //calcula o deslocamento com base no tamanho das paginas
     int exp = calculaShift(pageSize);
 
+    //calcula o tamanho das tabelas de paginas
     int qtd = TOTAL_BITS_SIZE - exp;
     sizePageTable = pow(2, qtd);
     pagTable = (Pagina*)malloc(sizeof(Pagina) * sizePageTable);
@@ -94,6 +107,7 @@ void createTables() {
         pagTable[i].time = 0;
     }
 
+    //calcula o tamanho da tabela de quadros
     qtd = ONE_MB_EXP + memSize - exp;
     sizeFrameTable = pow(2, qtd);
     frameTable = (Quadro*)malloc(sizeof(Quadro) * sizeFrameTable);
