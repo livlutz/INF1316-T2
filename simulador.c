@@ -53,6 +53,8 @@ int main(int argc, char* argv[]) {
     printf("Executando o simulador...\n");
 
     unsigned int address, page, offset = 0, physAddr;
+
+    //guarda o tipo de acesso (R ou W)
     char accessType;
 
     //calcula a quantidade de bits menos significativos
@@ -61,7 +63,7 @@ int main(int argc, char* argv[]) {
 
     //Le o arquivo de entrada
     while (!feof(arq)) {
-        //guarda o endereco e o tipo de acesso (R ou W)
+        //guarda o endereco e o tipo de acesso
         fscanf(arq, "%x %c ", &address, &accessType);
 
         //calcula o indice da pagina (endereco logico) descartando os bits menos significativos
@@ -158,4 +160,42 @@ int calculaShift() {
     int base_shift = ONE_KB_EXP;
     double plus_shift = log2(pageSize);
     return base_shift + (int) plus_shift;
+}
+
+void LRU(){
+    /*Princípio: descartar a página que ficou sem acesso durante o
+        periodo de tempo mais longo
+        Pegar o time de cada pagina e ver qual tem o time menor e descarta-la*/
+    
+    for(int i = 0; i < sizePageTable; i++){
+        if(pagTable[i].time < pagTable[i+1].time){
+            //substitui pagina i 
+        }
+    }
+}
+
+void NRU (){
+    /*Verificar bits R E M
+    Prioridade de se manter na memoria:
+    R | M
+    1   1
+    0   1
+    1   0
+    0   0  
+    prioridade de ser descartado vai de baixo pra cima*/
+
+    for(int i =0; i < sizePageTable; i++){
+        if(pagTable[i].R == 0 && pagTable[i].M == 0){
+            //substitui pagina i
+        }
+        else if(pagTable[i].R == 1 && pagTable[i].M == 0){
+            //substitui pagina i
+        }
+        else if(pagTable[i].R == 0 && pagTable[i].M == 1){
+            //substitui pagina i
+        }
+        else if(pagTable[i].R == 1 && pagTable[i].M == 1){
+            //substitui pagina i
+        }
+    }
 }
