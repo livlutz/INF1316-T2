@@ -15,9 +15,8 @@
 // expoente de 1 KB (2^10)
 #define ONE_KB_EXP 10
 
-//Estruturas das paginas e quadros de paginas
+//Estruturas das paginas 
 typedef struct pagina Pagina;
-typedef struct quadro Quadro;
 
 /*
  Cria as tabelas de paginas e de quadros
@@ -28,7 +27,7 @@ void createTables();
 */
 int calculaShift();
 /*
- Devolve o endere�o fisico apos o mapeamento pelo simulador
+ Definir o q essa funcao vai fazer
 */
 unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessType);
 

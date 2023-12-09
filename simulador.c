@@ -9,20 +9,13 @@
 #include "simulador.h"
 
 struct pagina {
-    unsigned int addressPhis; // XXXXXXXX XXXXXXXX XXX00000 00000000
     int time; // tempo de ultimo acesso
     int A; //flag de pagina na memoria
     int R; //flag de pagina referenciada
     int M; //flag de pagina modificada
 };
 
-struct quadro {
-    int num; //se -1 -> livre
-    Pagina* p; //ponteiro para a pagina
-};
-
 Pagina* pagTable;
-Quadro* frameTable;
 
 int sizeFrameTable, sizePageTable;
 int pageSize, memSize, mode;
@@ -127,25 +120,10 @@ void createTables() {
 
     //Inicializa os campos de pagina
     for (int i = 0; i < sizePageTable; i++) {
-        (pagTable + i)->addressPhis = 0;
         (pagTable + i)->time = 0;
         (pagTable + i)->A = 0;
         (pagTable + i)->R = 0;
         (pagTable + i)->M = 0;
-    }
-
-    //calcula o tamanho da tabela de quadros
-    sizeFrameTable = (pow(2, ONE_MB_EXP) * memSize) / pow(2, exp);
-    frameTable = (Quadro*)malloc(sizeof(Quadro) * sizeFrameTable);
-
-    if (frameTable == NULL) {
-        error("Espaco de memoria insuficiente\n")
-    }
-
-    //Inicializa os campos de quadro
-    for (int i = 0; i < sizeFrameTable; i++) {
-        (frameTable + i)->num = -1;
-        (frameTable + i)->p = NULL;
     }
 }
 
@@ -159,37 +137,19 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessTyp
         // se nao, conta mais 1 page fault
         pageFaults++;
 
-        // acha um frame livre
-        for (int i = 0; i < sizeFrameTable; i++) {
-            if (frameTable[i].num == -1) {
-                freeFrame = i;
-                frameTable[i].num = i;
-                frameTable[i].p = page;
-                break;
-            }
+        // libera 1 e devolve numero do frame || swap();
+        if (mode) {
+            int i = LRU();
+            freeFrame = i;
         }
-
-        // se nao tiver frame livre -> swap
-        if (freeFrame == -1) {
-            // libera 1 e devolve numero do frame || swap();
-            if (mode) {
-                int i = LRU();
-                freeFrame = i;
-                frameTable[i].num = i;
-                frameTable[i].p = page;
-            }
                 
-            else {
-                int i = NRU();
-                freeFrame = i;
-                frameTable[i].num = i;
-                frameTable[i].p = page;
-            }
+        else {
+            int i = NRU();
+            freeFrame = i;
         }
-
-        // guarda endereço fisico inicial do frame na pagina
-        page->addressPhis = frameTable[freeFrame].num << calculaShift();
     }
+
+    //page->addressPhis = frameTable[freeFrame].num << calculaShift();
 
     //Se a pagina for aberta para escrita -> seta a flag de escrita
     if (accessType == 'W') {
@@ -202,7 +162,9 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessTyp
     //Atualiza os campos e endereco da proxima pagina
     page->time = clock;
     page->A = 1;
-    addr = page->addressPhis + offset;
+
+    //TROCAR ISSO, NAO PRECISA MAIS DO ENDERECO FISICO
+    addr = 0;
 
     return addr;
 }
@@ -219,29 +181,30 @@ int LRU(){
         Pegar o time de cada pagina e ver qual tem o time menor e descarta-la*/
     int smallestSize = INT_MAX, indexBS = 0;
     
-    Pagina* maior = frameTable[0].p;
+   //PEGAR A MAIOR PAGINA
 
     //Se o tempo de acesso for < que o menor tempo, pega a pagina
     for(int i = 0; i < sizeFrameTable; i++){
-        if(frameTable[i].p->time < smallestSize){
+        //FRAME TABLE NAO EXISTE MAIS
+        /*if(frameTable[i].p->time < smallestSize){
             smallestSize = frameTable[i].p->time;
             indexBS = i;
             maior = frameTable[i].p;
-        }
+        }*/
     }
     //Seta a flag de modificado para 0 e aumenta a qtd de paginas sujas
-    if (maior->M) {
+    /*if (maior->M) {
         writtenPages++;
         maior->M = 0;
-    }
+    }*/
     
     //Seta as flags de presenca e leitura para 0
-    maior->A = 0;
-    maior->R = 0;
+    /*maior->A = 0;
+    maior->R = 0;*/
 
     //Inicializa os campos da pagina descartada
-    frameTable[indexBS].p = NULL;
-    frameTable[indexBS].num = -1;
+    /*frameTable[indexBS].p = NULL;
+    frameTable[indexBS].num = -1;*/
 
     //Retorna o indice da pagina descartada
     return indexBS;
@@ -263,7 +226,7 @@ int NRU (){
     //Compara as flags R e M da pagina atual
     for(i = 0; i < sizeFrameTable; i++){
 
-        atual = frameTable[i].p;
+        /*atual = frameTable[i].p;
 
         if(atual->R == 0 && atual->M == 0){
             descartado = atual;
@@ -299,7 +262,7 @@ int NRU (){
                 descartado = atual;
                 indDescart = i;
             }
-        }
+        }*/
     }
 
     //Se a pagina descartada for modificada, aumenta a qtd de paginas sujas e seta a flag M para 0
@@ -313,16 +276,16 @@ int NRU (){
     descartado->R = 0;
 
     //Inicializa os campos da pagina descartada
-    frameTable[indDescart].p = NULL;
-    frameTable[indDescart].num = -1;
+    /*frameTable[indDescart].p = NULL;
+    frameTable[indDescart].num = -1;*/
 
     //Retorna o indice da pagina descartada
     return indDescart;
 }
 
 void resetReference() {
-    for (int i = 0; i < sizeFrameTable; i++)
+    /*for (int i = 0; i < sizeFrameTable; i++)
         if (frameTable[i].p != NULL)
-            frameTable[i].p->R = 0;
+            frameTable[i].p->R = 0;*/
     return;
 }
