@@ -178,25 +178,25 @@ void LRU(){
     int smallestSize = INT_MAX;
     
    //PEGAR A MAIOR PAGINA
-   Pagina *maior;
+   Pagina *menor;
 
     //Se o tempo de acesso for < que o menor tempo, pega a pagina
     for(int i = 0; i < sizePageTable; i++){
         if(pagTable[i].A && pagTable[i].time < smallestSize){
             smallestSize = pagTable[i].time;
-            maior = pagTable + i;
+            menor = pagTable + i;
         }
     }
 
     //Seta a flag de modificado para 0 e aumenta a qtd de paginas sujas
-    if (maior->M) {
+    if (menor->M) {
         writtenPages++;
-        maior->M = 0;
+        menor->M = 0;
     }
     
     //Seta as flags de presenca e leitura para 0
-    maior->A = 0;
-    maior->R = 0;
+    menor->A = 0;
+    menor->R = 0;
 }
 
 void NRU (){
