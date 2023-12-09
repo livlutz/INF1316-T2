@@ -225,8 +225,6 @@ void NRU (){
         }
 
         else if(atual->R == 0 && atual->M == 1){
-            
-            //ver como fazer com a pagina descartada NULL
             if (descartado == NULL) {
                 descartado = atual;
                 continue;
@@ -237,7 +235,6 @@ void NRU (){
             }
         }
         else if(atual->R == 1 && atual->M == 0){
-            //ver como fazer com a pagina descartada NULL
             if (descartado == NULL) {
                 descartado = atual;
                 continue;
@@ -248,7 +245,6 @@ void NRU (){
             }
         }
         else {
-            //ver como fazer com a pagina descartada NULL
             if (descartado == NULL) {
                 descartado = atual;
             }
