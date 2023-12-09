@@ -1,8 +1,6 @@
 // Arthur Augusto Claro Sardella - 2212763 - 3WA
 // Lívia Lutz dos Santos - 2211055 - 3WB
 
-#define SIM 1
-
 // REMOVER ANTES DE ENTREGAR
 //#define DEBUG 1
 
