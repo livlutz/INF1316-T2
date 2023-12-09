@@ -29,7 +29,7 @@ int calculaShift();
 /*
  Definir o q essa funcao vai fazer
 */
-unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessType);
+void getPhysAddr(unsigned int index, unsigned int offset, char accessType);
 
 /*
 Faz o algoritmo de substituicao de paginas LRU

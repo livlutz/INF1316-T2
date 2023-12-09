@@ -15,9 +15,10 @@ struct pagina {
     int M; //flag de pagina modificada
 };
 
+//Array de paginas
 Pagina* pagTable;
 
-int sizeFrameTable, sizePageTable;
+int sizePageTable;
 int pageSize, memSize, mode;
 int pageFaults = 0, writtenPages = 0;
 
@@ -83,8 +84,8 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < shift; i++)
             offset += address & (0x1 << i);
 
-        //calcula o endereco fisico
-        physAddr = getPhysAddr(page, offset, accessType);
+        //faz os algoritmos de substituicao de paginas
+        getPhysAddr(page, offset, accessType);
 
         //incrementa o contador do simulador
         clock++;
@@ -127,7 +128,7 @@ void createTables() {
     }
 }
 
-unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessType) {
+void getPhysAddr(unsigned int index, unsigned int offset, char accessType) {
     Pagina* page = pagTable + index;
     unsigned int addr;
     int freeFrame = -1;
@@ -149,8 +150,6 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessTyp
         }
     }
 
-    //page->addressPhis = frameTable[freeFrame].num << calculaShift();
-
     //Se a pagina for aberta para escrita -> seta a flag de escrita
     if (accessType == 'W') {
         page->M = 1;
@@ -162,11 +161,6 @@ unsigned int getPhysAddr(unsigned int index, unsigned int offset, char accessTyp
     //Atualiza os campos e endereco da proxima pagina
     page->time = clock;
     page->A = 1;
-
-    //TROCAR ISSO, NAO PRECISA MAIS DO ENDERECO FISICO
-    addr = 0;
-
-    return addr;
 }
 
 int calculaShift() {
@@ -182,29 +176,28 @@ int LRU(){
     int smallestSize = INT_MAX, indexBS = 0;
     
    //PEGAR A MAIOR PAGINA
+   Pagina maior;
 
     //Se o tempo de acesso for < que o menor tempo, pega a pagina
-    for(int i = 0; i < sizeFrameTable; i++){
-        //FRAME TABLE NAO EXISTE MAIS
-        /*if(frameTable[i].p->time < smallestSize){
-            smallestSize = frameTable[i].p->time;
+    for(int i = 0; i < sizePageTable; i++){
+        if(pagTable[i].time < smallestSize){
+            smallestSize = pagTable[i].time;
             indexBS = i;
-            maior = frameTable[i].p;
-        }*/
+            maior = pagTable[i];
+        }
     }
+
     //Seta a flag de modificado para 0 e aumenta a qtd de paginas sujas
-    /*if (maior->M) {
+    if (maior.M) {
         writtenPages++;
-        maior->M = 0;
-    }*/
+        maior.M = 0;
+    }
     
     //Seta as flags de presenca e leitura para 0
-    /*maior->A = 0;
-    maior->R = 0;*/
+    maior.A = 0;
+    maior.R = 0;
 
-    //Inicializa os campos da pagina descartada
-    /*frameTable[indexBS].p = NULL;
-    frameTable[indexBS].num = -1;*/
+    //Talvez falte inicializar os campos da pagina descartada
 
     //Retorna o indice da pagina descartada
     return indexBS;
@@ -220,72 +213,76 @@ int NRU (){
     0   0  
     prioridade de ser descartado vai de baixo pra cima*/
 
-    Pagina *atual = NULL, *descartado = NULL;
+    Pagina atual, descartado;
     int i, indDescart = 0;
 
     //Compara as flags R e M da pagina atual
-    for(i = 0; i < sizeFrameTable; i++){
+    for(i = 0; i < sizePageTable; i++){
 
-        /*atual = frameTable[i].p;
+        atual = pagTable[i];
 
-        if(atual->R == 0 && atual->M == 0){
+        if(atual.R == 0 && atual.M == 0){
             descartado = atual;
             indDescart = i;
             break;
         }
-        else if(atual->R == 0 && atual->M == 1){
-            if (descartado == NULL) {
+
+        else if(atual.R == 0 && atual.M == 1){
+            
+            //ver como fazer com a pagina descartada NULL
+            /*if (descartado == NULL) {
                 descartado = atual;
                 indDescart = i;
                 continue;
-            }
+            }*/
 
-            if (descartado->R) {
+            if (descartado.R) {
                 descartado = atual;
                 indDescart = i;
             }
         }
-        else if(atual->R == 1 && atual->M == 0){
-            if (descartado == NULL) {
+        else if(atual.R == 1 && atual.M == 0){
+            //ver como fazer com a pagina descartada NULL
+            /*if (descartado == NULL) {
                 descartado = atual;
                 indDescart = i;
                 continue;
-            }
+            }*/
 
-            if (descartado->R && descartado->M) {
+            if (descartado.R && descartado.M) {
                 descartado = atual;
                 indDescart = i;
             }
         }
         else {
-            if (descartado == NULL) {
+            //ver como fazer com a pagina descartada NULL
+            /*if (descartado == NULL) {
                 descartado = atual;
                 indDescart = i;
-            }
-        }*/
+            }*/
+        }
     }
 
     //Se a pagina descartada for modificada, aumenta a qtd de paginas sujas e seta a flag M para 0
-    if (descartado->M) {
+    if (descartado.M) {
         writtenPages++;
-        descartado->M = 0;
+        descartado.M = 0;
     }
 
     //Seta as flags de presenca e leitura para 0
-    descartado->A = 0;
-    descartado->R = 0;
+    descartado.A = 0;
+    descartado.R = 0;
 
-    //Inicializa os campos da pagina descartada
-    /*frameTable[indDescart].p = NULL;
-    frameTable[indDescart].num = -1;*/
+    // talvez tenha q Inicializar os campos da pagina descartada
 
     //Retorna o indice da pagina descartada
     return indDescart;
 }
 
 void resetReference() {
-    /*for (int i = 0; i < sizeFrameTable; i++)
-        if (frameTable[i].p != NULL)
-            frameTable[i].p->R = 0;*/
+    for (int i = 0; i < sizePageTable; i++)
+        //ver como fazer com a pagina descartada NULL
+        /*if (pagTable[i] != NULL)
+            pagTable[i].R = 0;*/
     return;
 }
