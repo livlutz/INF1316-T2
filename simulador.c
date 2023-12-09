@@ -1,8 +1,6 @@
 // Arthur Augusto Claro Sardella - 2212763 - 3WA
 // Lívia Lutz dos Santos - 2211055 - 3WB
 
-// REMOVER ANTES DE ENTREGAR
-//#define DEBUG 1
 
 #include "simulador.h"
 
@@ -23,14 +21,8 @@ int pageFaults = 0, writtenPages = 0;
 //contador simulando a passagem do tempo
 int clock = 0;
 
-#if DEBUG
-int main(void) {
-    int argc = 5;
-    char* argv[5] = {"", "NRU", "C:\\Users\\Doctor Christ\\Documents\\inf1316-T2\\simulador.log", "16", "1"};
-#else
 int main(int argc, char* argv[]) {
 
-#endif
     if (argc != 5) {
         error("Uso apropriado do programa: .\\sim-virtual (LRU || NRU) (8 || 16) (1..4)\n")
     }
