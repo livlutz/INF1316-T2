@@ -167,7 +167,7 @@ void LRU(){
         Pegar o time de cada pagina e ver qual tem o time menor e descarta-la*/
     int smallestSize = INT_MAX;
     
-   //PEGAR A MAIOR PAGINA
+   //Página com menor tempo
    Pagina *menor;
 
     //Se o tempo de acesso for < que o menor tempo, pega a pagina
@@ -205,35 +205,45 @@ void NRU (){
     //Compara as flags R e M da pagina atual
     for(i = 0; i < sizePageTable; i++){
 
+        //Guarda a pagina atual
         atual = pagTable + i;
 
+        //Continua o loop caso a pagina nao esteja presente
         if (atual->A == 0) continue;
 
+        //R = M = 0 e descartada primeiro
         if(atual->R == 0 && atual->M == 0){
             descartado = atual;
             break;
         }
 
+        //R = 0 M = 1 descartada depois
         else if(atual->R == 0 && atual->M == 1){
             if (descartado == NULL) {
                 descartado = atual;
                 continue;
             }
-
+            
+            //Descartado referenciado
             if (descartado->R) {
                 descartado = atual;
             }
         }
+
+        // R = 1 M = 0 descartada depois
         else if(atual->R == 1 && atual->M == 0){
             if (descartado == NULL) {
                 descartado = atual;
                 continue;
             }
-
+            
+            //Descartado referenciado
             if (descartado->R && descartado->M) {
                 descartado = atual;
             }
         }
+
+        // R = M = 1 descartada por ultimo
         else {
             if (descartado == NULL) {
                 descartado = atual;
@@ -254,7 +264,9 @@ void NRU (){
 
 void resetReference() {
     for (int i = 0; i < sizePageTable; i++)
+        //Pagina presente
         if (pagTable[i].A)
+            //Reseta sua flag R para 0
             pagTable[i].R = 0;
     return;
 }
