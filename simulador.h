@@ -1,3 +1,6 @@
+// Arthur Augusto Claro Sardella - 2212763 - 3WA
+// Lívia Lutz dos Santos - 2211055 - 3WB
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
